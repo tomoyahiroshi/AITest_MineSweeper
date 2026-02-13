@@ -29,6 +29,7 @@ class MineSweeperApp:
         self._build_menu()
         self._build_layout()
         self._build_board()
+        self.root.bind("<Configure>", self.on_window_resize)
         self._tick_timer()
 
     def _build_menu(self) -> None:
@@ -49,6 +50,9 @@ class MineSweeperApp:
         self.root.config(menu=menu)
 
     def _build_layout(self) -> None:
+        self.root.rowconfigure(1, weight=1)
+        self.root.columnconfigure(0, weight=1)
+
         self.top = tk.Frame(self.root, padx=8, pady=8)
         self.top.pack(fill=tk.X)
         tk.Label(self.top, textvariable=self.mines_var, width=10).pack(side=tk.LEFT)
@@ -56,7 +60,7 @@ class MineSweeperApp:
         tk.Label(self.top, textvariable=self.timer_var, width=8).pack(side=tk.RIGHT)
 
         self.board_frame = tk.Frame(self.root, padx=8, pady=8)
-        self.board_frame.pack()
+        self.board_frame.pack(fill=tk.BOTH, expand=True)
 
     def _build_board(self) -> None:
         for w in self.board_frame.winfo_children():
@@ -66,7 +70,9 @@ class MineSweeperApp:
         self.buttons = []
         for r in range(s.rows):
             row_buttons: list[tk.Button] = []
+            self.board_frame.rowconfigure(r, weight=1, uniform="row")
             for c in range(s.cols):
+                self.board_frame.columnconfigure(c, weight=1, uniform="col")
                 btn = tk.Button(self.board_frame, width=2, height=1, relief=tk.RAISED)
                 btn.grid(row=r, column=c, sticky="nsew")
                 btn.bind("<Button-1>", lambda e, rr=r, cc=c: self.on_left_click(rr, cc))
@@ -75,6 +81,23 @@ class MineSweeperApp:
             self.buttons.append(row_buttons)
 
         self.update_all_cells()
+
+    def on_window_resize(self, event: tk.Event[tk.Misc]) -> None:
+        if event.widget is not self.root or not self.buttons:
+            return
+
+        board_width = self.board_frame.winfo_width()
+        board_height = self.board_frame.winfo_height()
+        rows = self.engine.state.rows
+        cols = self.engine.state.cols
+        if rows == 0 or cols == 0:
+            return
+
+        cell_size = min(board_width // cols, board_height // rows)
+        font_size = max(8, min(16, int(cell_size * 0.45)))
+        for row in self.buttons:
+            for btn in row:
+                btn.config(font=("", font_size))
 
     def on_left_click(self, r: int, c: int) -> None:
         if self.engine.state.is_game_over or self.engine.state.is_cleared:
