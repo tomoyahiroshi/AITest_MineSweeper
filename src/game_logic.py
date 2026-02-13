@@ -72,7 +72,11 @@ class GameEngine:
             return
 
         cell = self.state.board[r][c]
-        if cell.is_open or cell.is_flagged:
+        if cell.is_open:
+            self._open_neighbors_if_marked(r, c)
+            return
+
+        if cell.is_flagged:
             return
 
         if self.state.is_first_click:
@@ -86,6 +90,28 @@ class GameEngine:
             return
 
         self._open_flood(r, c)
+        self._check_clear()
+
+    def _open_neighbors_if_marked(self, r: int, c: int) -> None:
+        cell = self.state.board[r][c]
+        if cell.adjacent_mines == 0:
+            return
+
+        neighbors = self.neighbors(r, c)
+        flagged_count = sum(1 for nr, nc in neighbors if self.state.board[nr][nc].is_flagged)
+        if flagged_count != cell.adjacent_mines:
+            return
+
+        for nr, nc in neighbors:
+            target = self.state.board[nr][nc]
+            if target.is_open or target.is_flagged:
+                continue
+            if target.is_mine:
+                target.is_open = True
+                self.state.is_game_over = True
+                return
+            self._open_flood(nr, nc)
+
         self._check_clear()
 
     def _open_flood(self, r: int, c: int) -> None:
