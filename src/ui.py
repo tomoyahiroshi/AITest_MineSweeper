@@ -107,11 +107,15 @@ class MineSweeperApp:
             self.engine.freeze_timer()
             self.engine.reveal_all_mines()
             self.face_var.set("😵")
-            messagebox.showinfo("ゲームオーバー", "地雷を踏みました")
+            self.update_all_cells()
+            self.root.after(0, lambda: messagebox.showinfo("ゲームオーバー", "地雷を踏みました"))
+            return
         elif self.engine.state.is_cleared:
             self.engine.freeze_timer()
             self.face_var.set("😎")
-            messagebox.showinfo("クリア", "おめでとうございます")
+            self.update_all_cells()
+            self.root.after(0, lambda: messagebox.showinfo("クリア", "おめでとうございます"))
+            return
         self.update_all_cells()
 
     def on_right_click(self, r: int, c: int) -> None:
