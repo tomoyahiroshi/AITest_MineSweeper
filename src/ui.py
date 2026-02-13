@@ -55,9 +55,12 @@ class MineSweeperApp:
 
         self.top = tk.Frame(self.root, padx=8, pady=8)
         self.top.pack(fill=tk.X)
-        tk.Label(self.top, textvariable=self.mines_var, width=10).pack(side=tk.LEFT)
-        tk.Button(self.top, textvariable=self.face_var, width=4, command=self.reset_game).pack(side=tk.LEFT, padx=8)
-        tk.Label(self.top, textvariable=self.timer_var, width=8).pack(side=tk.RIGHT)
+        self.mines_label = tk.Label(self.top, textvariable=self.mines_var, width=10)
+        self.mines_label.pack(side=tk.LEFT)
+        self.face_button = tk.Button(self.top, textvariable=self.face_var, width=4, command=self.reset_game)
+        self.face_button.pack(side=tk.LEFT, padx=8)
+        self.timer_label = tk.Label(self.top, textvariable=self.timer_var, width=8)
+        self.timer_label.pack(side=tk.RIGHT)
 
         self.board_frame = tk.Frame(self.root, padx=8, pady=8)
         self.board_frame.pack(fill=tk.BOTH, expand=True)
@@ -81,11 +84,14 @@ class MineSweeperApp:
             self.buttons.append(row_buttons)
 
         self.update_all_cells()
+        self.root.after_idle(self._apply_responsive_styles)
 
     def on_window_resize(self, event: tk.Event[tk.Misc]) -> None:
         if event.widget is not self.root or not self.buttons:
             return
+        self._apply_responsive_styles()
 
+    def _apply_responsive_styles(self) -> None:
         board_width = self.board_frame.winfo_width()
         board_height = self.board_frame.winfo_height()
         rows = self.engine.state.rows
@@ -93,11 +99,17 @@ class MineSweeperApp:
         if rows == 0 or cols == 0:
             return
 
-        cell_size = min(board_width // cols, board_height // rows)
-        font_size = max(8, min(16, int(cell_size * 0.45)))
+        cell_size = max(1, min(board_width // cols, board_height // rows))
+        cell_font_size = max(8, min(36, int(cell_size * 0.45)))
+        status_font_size = max(9, min(20, int(cell_font_size * 0.9)))
+
         for row in self.buttons:
             for btn in row:
-                btn.config(font=("", font_size))
+                btn.config(font=("", cell_font_size))
+
+        self.mines_label.config(font=("", status_font_size))
+        self.timer_label.config(font=("", status_font_size))
+        self.face_button.config(font=("", status_font_size))
 
     def on_left_click(self, r: int, c: int) -> None:
         if self.engine.state.is_game_over or self.engine.state.is_cleared:
