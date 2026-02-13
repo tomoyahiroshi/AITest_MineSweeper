@@ -15,6 +15,8 @@ from game_logic import GameEngine
 
 
 class MineSweeperApp:
+    BOARD_BASE_COLOR = "#bdbdbd"
+
     def __init__(self, root: tk.Tk) -> None:
         self.root = root
         self.root.title("Minesweeper")
@@ -62,7 +64,7 @@ class MineSweeperApp:
         self.timer_label = tk.Label(self.top, textvariable=self.timer_var, width=8)
         self.timer_label.pack(side=tk.RIGHT)
 
-        self.board_frame = tk.Frame(self.root, padx=8, pady=8)
+        self.board_frame = tk.Frame(self.root, padx=8, pady=8, bg=self.BOARD_BASE_COLOR)
         self.board_frame.pack(fill=tk.BOTH, expand=True)
 
     def _build_board(self) -> None:
@@ -77,7 +79,7 @@ class MineSweeperApp:
             for c in range(s.cols):
                 self.board_frame.columnconfigure(c, weight=1, uniform="col")
                 btn = tk.Button(self.board_frame, width=2, height=1, relief=tk.RAISED)
-                btn.grid(row=r, column=c, sticky="nsew")
+                btn.grid(row=r, column=c, sticky="nsew", padx=1, pady=1)
                 btn.bind("<Button-1>", lambda e, rr=r, cc=c: self.on_left_click(rr, cc))
                 btn.bind("<Button-3>", lambda e, rr=r, cc=c: self.on_right_click(rr, cc))
                 row_buttons.append(btn)
